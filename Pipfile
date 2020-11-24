@@ -4,6 +4,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+flake8 = "~=3.8"
+flake8-annotations = "~=2.4"
+flake8-docstrings = "~=1.5"
+flake8-import-order = "~=0.18"
+flake8-print = "~=3.1"
 
 [packages]
 pyglet = "~=1.5.11"
