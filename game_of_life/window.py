@@ -23,8 +23,4 @@ class GameOfLifeWindow(pyglet.window.Window):
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """Switch cell state on mouse clicks."""
-        cell = self.grid.get_cell_at(x // self.cell_size, y // self.cell_size)
-        if cell.is_alive:
-            cell.hide()
-        else:
-            cell.show()
+        self.grid.switch_cell_at(x // self.cell_size, y // self.cell_size)

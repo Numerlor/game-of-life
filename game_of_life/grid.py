@@ -44,6 +44,10 @@ class GridManager:
             for cell in cells_to_update:
                 cell.switch()
 
+    def switch_cell_at(self, col, row):
+        cell = self.get_cell_at(col, row)
+        self.changed.update(self.get_cell_neighbors(cell))
+        cell.switch()
 
     def get_cell_at(self, col: int, row: int) -> Cell:
         """
