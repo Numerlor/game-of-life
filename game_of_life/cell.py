@@ -10,11 +10,11 @@ class Cell:
 
     `hide` hides the cell bz setting it to black, `show` creates a white cell
     """
-    __slots__ = ("row", "col", "batch", "vertex", "is_alive")
+    __slots__ = ("x", "y", "batch", "vertex", "is_alive")
 
-    def __init__(self, row: int, col: int, batch: pyglet.graphics.Batch):
-        self.row = row
-        self.col = col
+    def __init__(self, x: int, y: int, batch: pyglet.graphics.Batch):
+        self.x = x
+        self.y = y
         self.batch = batch
         self.vertex = self.create_vertex()
         self.is_alive = False
@@ -30,13 +30,13 @@ class Cell:
 
         The resulting graphic is a square of `color` with a grey outline.
         """
-        x_base = CELL_SIZE * self.col
+        x_base = CELL_SIZE * self.x
         x_offset = x_base + CELL_SIZE
 
-        y_base = CELL_SIZE * self.row
+        y_base = CELL_SIZE * self.y
         y_offset = y_base + CELL_SIZE
 
-        grid_size = 1
+        grid_size = 0.5
 
         return self.batch.add_indexed(
             8,
@@ -50,7 +50,7 @@ class Cell:
                 4, 6, 7,
             ],
             (
-                "v2i/static", (
+                "v2f/static", (
                     x_base, y_base,
                     x_offset, y_base,
                     x_offset, y_offset,
@@ -67,4 +67,4 @@ class Cell:
         )
 
     def __repr__(self):
-        return f"<Cell row={self.row}, column={self.col}, alive={self.is_alive}>"
+        return f"<Cell x={self.x}, y={self.y}, alive={self.is_alive}>"
