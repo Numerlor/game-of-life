@@ -59,20 +59,14 @@ class GridManager:
 
     def get_cell_neighbors(self, cell: Cell) -> typing.Iterator[Cell]:
         """Yield `cell` and all of its neighbors."""
-        cell_index = cell.row*self.row_count+cell.col
-        x_offsets = [0]
-        if cell.col != 0:
-            x_offsets.append(-1)
-        if cell.col != self.col_count - 1:
-            x_offsets.append(1)
-
-        y_offsets = [0]
-        if cell.row != 0:
-            y_offsets.append(-self.col_count)
-        if cell.row != self.row_count - 1:
-            y_offsets.append(self.col_count)
-
-        for x_offset in x_offsets:
-            for y_offset in y_offsets:
-                index = cell_index + x_offset + y_offset
-                yield self.cells[index]
+        for col in (
+                (cell.col-1) % self.col_count,
+                cell.col,
+                (cell.col+1) % self.col_count,
+        ):
+            for row in (
+                    (cell.row-1) % self.row_count,
+                    cell.row,
+                    (cell.row+1) % self.row_count,
+            ):
+                yield self.cells[row*self.row_count+col]
