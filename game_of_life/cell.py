@@ -1,4 +1,5 @@
 import pyglet
+from . import CELL_SIZE
 
 
 class Cell:
@@ -9,11 +10,9 @@ class Cell:
 
     `hide` hides the cell bz setting it to black, `show` creates a white cell
     """
+    __slots__ = ("row", "col", "batch", "vertex", "is_alive")
 
-    __slots__ = ("size", "row", "col", "batch", "vertex", "is_alive")
-
-    def __init__(self, size: int, row: int, col: int, batch: pyglet.graphics.Batch):
-        self.size = size
+    def __init__(self, row: int, col: int, batch: pyglet.graphics.Batch):
         self.row = row
         self.col = col
         self.batch = batch
@@ -31,11 +30,11 @@ class Cell:
 
         The resulting graphic is a square of `color` with a grey outline.
         """
-        x_base = self.size * self.col
-        x_offset = x_base + self.size
+        x_base = CELL_SIZE * self.col
+        x_offset = x_base + CELL_SIZE
 
-        y_base = self.size * self.row
-        y_offset = y_base + self.size
+        y_base = CELL_SIZE * self.row
+        y_offset = y_base + CELL_SIZE
 
         grid_size = 1
 
