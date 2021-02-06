@@ -1,6 +1,7 @@
 import itertools
 import random
 import typing
+import functools
 
 import pyglet
 
@@ -33,7 +34,7 @@ class GridManager:
             cells_to_update = []
             changed = set()
             for cell in self.changed:
-                neighbors = list(self.get_cell_neighbors(cell))
+                neighbors = self.get_cell_neighbors(cell)
                 alive_neighbors = sum(cell.is_alive for cell in neighbors) - cell.is_alive
                 if cell.is_alive and alive_neighbors not in {2, 3} or not cell.is_alive and alive_neighbors == 3:
                     cells_to_update.append(cell)
@@ -56,16 +57,23 @@ class GridManager:
         """
         return self.cells[y*self.col_count+x]
 
+    def get_cell_indices(self, x, y):
+        return (
+            ((y - 1) % self.row_count) * self.col_count + (x - 1) % self.col_count,
+            ((y - 1) % self.row_count) * self.col_count + x,
+            ((y - 1) % self.row_count) * self.col_count + (x + 1) % self.col_count,
+
+            y * self.col_count + (x - 1) % self.col_count,
+            y * self.col_count + x,
+            y * self.col_count + (x + 1) % self.col_count,
+
+            ((y + 1) % self.row_count) * self.col_count + (x - 1) % self.col_count,
+            ((y + 1) % self.row_count) * self.col_count + x,
+            ((y + 1) % self.row_count) * self.col_count + (x + 1) % self.col_count,
+
+        )
+
+    @functools.cache
     def get_cell_neighbors(self, cell: Cell) -> typing.Iterator[Cell]:
         """Yield `cell` and all of its neighbors."""
-        for x in (
-                (cell.x - 1) % self.col_count,
-                cell.x,
-                (cell.x + 1) % self.col_count,
-        ):
-            for y in (
-                    (cell.y - 1) % self.row_count,
-                    cell.y,
-                    (cell.y + 1) % self.row_count,
-            ):
-                yield self.cells[y*self.col_count+x]
+        return tuple(self.cells[index] for index in self.get_cell_indices(cell.x, cell.y))
