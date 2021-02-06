@@ -17,24 +17,15 @@ class Cell:
         self.row = row
         self.col = col
         self.batch = batch
-        self.vertex = None
+        self.vertex = self.create_vertex()
         self.is_alive = False
 
-    def hide(self) -> None:
+    def switch(self) -> None:
         """Delete previous vertex, display black cell and set `is_alive` to False."""
-        if self.vertex is not None:
-            self.vertex.delete()
-        self.display(0)
-        self.is_alive = False
+        self.is_alive = not self.is_alive
+        self.vertex.colors[12:] = (255,)*3*4 if self.is_alive else (0,)*3*4
 
-    def show(self) -> None:
-        """Delete previous vertex, display white cell and set `is_alive` to True."""
-        if self.vertex is not None:
-            self.vertex.delete()
-        self.display(255)
-        self.is_alive = True
-
-    def display(self, color: int) -> None:
+    def create_vertex(self) -> pyglet.graphics.vertexdomain.IndexedVertexList:
         """
         Create and add cell vertex list to batch.
 
@@ -48,7 +39,7 @@ class Cell:
 
         grid_size = 1
 
-        self.vertex = self.batch.add_indexed(
+        return self.batch.add_indexed(
             8,
             pyglet.gl.GL_TRIANGLES,
             None,
@@ -60,7 +51,7 @@ class Cell:
                 4, 6, 7,
             ],
             (
-                "v2i", (
+                "v2i/static", (
                     x_base, y_base,
                     x_offset, y_base,
                     x_offset, y_offset,
@@ -72,7 +63,7 @@ class Cell:
                     x_base + grid_size, y_offset - grid_size,
                 )
             ),
-            ("c3B", (180,) * 3 * 4 + (color,) * 3 * 4)
+            ("c3B", (180,) * 3 * 4 + (0,) * 3 * 4)
 
         )
 

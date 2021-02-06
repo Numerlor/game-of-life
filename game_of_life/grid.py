@@ -23,28 +23,27 @@ class GridManager:
             cell = Cell(self.cell_size, col, row, self.batcher)
             self.cells.append(cell)
             if random.random() < .33:
-                cell.show()
-            else:
-                cell.hide()
-        pyglet.clock.schedule_interval(self.run_generation, 0.075)
+                cell.switch()
+
+        self.changed = self.cells
+        pyglet.clock.schedule_interval(self.run_generation, 1/60)
 
     def run_generation(self, _dt: typing.Optional[float] = None) -> None:
         """Run a single generation."""
-        cells_to_kill = []
-        cells_to_create = []
-        for index, cell in enumerate(self.cells):
-            alive_neighbors = self.get_cell_neighbors(index, cell.col, cell.row)
-            if cell.is_alive:
-                if alive_neighbors not in {2, 3}:
-                    cells_to_kill.append(cell)
-            else:
-                if alive_neighbors == 3:
-                    cells_to_create.append(cell)
+        if self.changed:
+            cells_to_update = []
+            changed = set()
+            for cell in self.changed:
+                neighbors = list(self.get_cell_neighbors(cell))
+                alive_neighbors = sum(cell.is_alive for cell in neighbors) - cell.is_alive
+                if cell.is_alive and alive_neighbors not in {2, 3} or not cell.is_alive and alive_neighbors == 3:
+                    cells_to_update.append(cell)
+                    changed.update(neighbors)
 
-        for cell in cells_to_kill:
-            cell.hide()
-        for cell in cells_to_create:
-            cell.show()
+            self.changed = changed
+            for cell in cells_to_update:
+                cell.switch()
+
 
     def get_cell_at(self, col: int, row: int) -> Cell:
         """
@@ -55,28 +54,22 @@ class GridManager:
         assert row < self.row_count and col < self.col_count
         return self.cells[col + self.col_count * row]
 
-    def get_cell_neighbors(self, cell_index: int, cell_x: int, cell_y: int) -> int:
-        """
-        Get count of alive neighbors of cell at cell_index.
-
-        `cell_x` and `cell_y` are used to determine whether the cell is at the edge.
-        """
-        alive = 0
+    def get_cell_neighbors(self, cell: Cell) -> typing.Iterator[Cell]:
+        """Yield `cell` and all of its neighbors."""
+        cell_index = cell.row*self.row_count+cell.col
         x_offsets = [0]
-        if cell_x != 0:
+        if cell.col != 0:
             x_offsets.append(-1)
-        if cell_x != self.col_count - 1:
+        if cell.col != self.col_count - 1:
             x_offsets.append(1)
 
         y_offsets = [0]
-        if cell_y != 0:
+        if cell.row != 0:
             y_offsets.append(-self.col_count)
-        if cell_y != self.row_count - 1:
+        if cell.row != self.row_count - 1:
             y_offsets.append(self.col_count)
 
         for x_offset in x_offsets:
             for y_offset in y_offsets:
                 index = cell_index + x_offset + y_offset
-                if index != cell_index:
-                    alive += self.cells[index].is_alive
-        return alive
+                yield self.cells[index]
