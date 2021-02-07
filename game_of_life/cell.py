@@ -1,7 +1,6 @@
 import pyglet
 from . import CELL_SIZE
-
-BACKGROUND = pyglet.graphics.OrderedGroup(0)
+from . constants import BACKGROUND
 
 
 class Cell:

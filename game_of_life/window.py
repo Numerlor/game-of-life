@@ -1,8 +1,7 @@
 import pyglet
 
 from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK
-
-FOREGROUND = pyglet.graphics.OrderedGroup(1)
+from .constants import FOREGROUND
 
 
 class ContextMenu:
