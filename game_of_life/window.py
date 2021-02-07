@@ -69,6 +69,6 @@ class GameOfLifeWindow(pyglet.window.Window):
             )
             self.context_menu.add_button("placeholder.png", "placeholder.png")
         elif button == pyglet.window.mouse.LEFT:
-            if not self.context_menu.point_intersects(x, y):
+            if self.context_menu is None:
                 self.grid.switch_cell_at(x // CELL_SIZE, y // CELL_SIZE)
             self.context_menu = None
