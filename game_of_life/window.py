@@ -2,17 +2,19 @@ import pyglet
 
 from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK
 
+FOREGROUND = pyglet.graphics.OrderedGroup(1)
+
 
 class ContextMenu:
     BUTTON_HEIGHT = 20
     BUTTON_WIDTH = 50
 
-    def __init__(self, window: pyglet.window.Window, x: int, y: int):
+    def __init__(self, window: pyglet.window.Window, x: int, y: int, batch):
         self.frame = pyglet.gui.Frame(window)
         self.x = x
         self.y = y
         self.button_amount = 0
-        self.batch = pyglet.graphics.Batch()
+        self.batch = batch
 
     def add_button(self, pressed, depressed, hover=None, handler=None):
         self.button_amount += 1
@@ -22,7 +24,8 @@ class ContextMenu:
             pyglet.resource.image(pressed),
             pyglet.resource.image(depressed),
             hover and pyglet.resource.image(hover),
-            self.batch
+            self.batch,
+            FOREGROUND
         )
         button.set_handler("on_press", handler)
         self.frame.add_widget(button)
@@ -45,15 +48,14 @@ class GameOfLifeWindow(pyglet.window.Window):
             height = HEIGHT
             width = WIDTH
         super().__init__(width, height, *args, **kwargs)
-        self.game = GameOfLife(start_grid, height, width)
+        self.batch = pyglet.graphics.Batch()
+        self.game = GameOfLife(0, 0, start_grid, CELL_SIZE, height, width, self.batch)
         self.context_menu = None
 
     def on_draw(self) -> None:
         """Clear window and draw grid's batch."""
         self.clear()
-        self.game.grid.batch.draw()
-        if self.context_menu is not None:
-            self.context_menu.batch.draw()
+        self.batch.draw()
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
         """Run a single generation when a key is pressed."""

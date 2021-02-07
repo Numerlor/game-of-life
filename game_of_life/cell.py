@@ -1,6 +1,8 @@
 import pyglet
 from . import CELL_SIZE
 
+BACKGROUND = pyglet.graphics.OrderedGroup(0)
+
 
 class Cell:
     """
@@ -41,7 +43,7 @@ class Cell:
         return self.batch.add_indexed(
             8,
             pyglet.gl.GL_TRIANGLES,
-            None,
+            BACKGROUND,
             [
                 0, 1, 2,
                 0, 2, 3,

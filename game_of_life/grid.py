@@ -5,18 +5,18 @@ import functools
 
 import pyglet
 
-from game_of_life import CELL_SIZE, SIMULATION_TICK, Cell
+from game_of_life import SIMULATION_TICK, Cell
 
 
 class Grid:
-    def __init__(self, x, y, cell_size, height, width):
-        self.batch = pyglet.graphics.Batch()
+    def __init__(self, x, y, cell_size, height, width, batch):
+        self.batch = batch
         self.cells: list[Cell] = []
         self.cell_size = cell_size
         self.row_count = height // cell_size
         self.col_count = width // cell_size
-        self.x = x
-        self.y = y
+        self.x = x // cell_size
+        self.y = y // cell_size
 
     def create(self, start_grid: typing.Optional[list]) -> None:
         """Init cell objects for whole grid and populate roughly third of grid."""
@@ -66,12 +66,25 @@ class Grid:
 class GameOfLife:
     """Manages grid of `Cell`s and simulates the game of life with them."""
 
-    def __init__(self, start_grid, height, width):
-        self.grid = Grid(0, 0, CELL_SIZE, height, width)
+    def __init__(
+            self,
+            x,
+            y,
+            start_grid,
+            cell_size,
+            height,
+            width,
+            batch,
+            tick=SIMULATION_TICK
+    ):
+        if start_grid is not None:
+            height = cell_size*len(start_grid)
+            width = cell_size*len(start_grid[0])
+        self.grid = Grid(x, y, cell_size, height, width, batch)
         self.grid.create(start_grid)
         self.changed: typing.Union[set[Cell]] = set(self.grid.cells)
 
-        pyglet.clock.schedule_interval(self.run_generation, SIMULATION_TICK)
+        pyglet.clock.schedule_interval(self.run_generation, tick)
 
     def run_generation(self, _dt: typing.Optional[float] = None) -> None:
         """Run a single generation."""
