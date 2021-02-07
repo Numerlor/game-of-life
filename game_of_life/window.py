@@ -48,7 +48,17 @@ class GameOfLifeWindow(pyglet.window.Window):
             width = WIDTH
         super().__init__(width, height, *args, **kwargs)
         self.batch = pyglet.graphics.Batch()
-        self.game = GameOfLife(0, 0, start_grid, CELL_SIZE, height, width, self.batch)
+        self.game = GameOfLife(
+            0,
+            0,
+            start_grid,
+            CELL_SIZE,
+            height=height,
+            width=width,
+            batch=self.batch,
+            group=BACKGROUND,
+        )
+        pyglet.clock.unschedule(self.game.run_generation)
         self.context_menu = None
 
     def on_draw(self) -> None:

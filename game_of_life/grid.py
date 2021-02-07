@@ -18,9 +18,11 @@ class Grid:
             *,
             height=None,
             width=None,
-            batch
+            batch,
+            group,
     ):
         self.batch = batch
+        self.group = group
         self.cells: list[Cell] = []
         self.cell_size = cell_size
         if start_grid:
@@ -39,14 +41,14 @@ class Grid:
         """Init cell objects for whole grid and populate roughly third of grid."""
         if self.start_grid is None:
             for y, x in itertools.product(range(self.row_count), range(self.col_count)):
-                cell = Cell(self.x+x, self.y + y, self.batch)
+                cell = Cell(self.x+x, self.y + y, self.batch, self.group)
                 self.cells.append(cell)
                 if random.random() < .33:
                     cell.switch()
         else:
             for y, row in enumerate(self.start_grid):
                 for x, state in enumerate(row):
-                    cell = Cell(self.x+x, self.y + y, self.batch)
+                    cell = Cell(self.x+x, self.y + y, self.batch, self.group)
                     self.cells.append(cell)
                     if state:
                         cell.switch()
@@ -93,9 +95,11 @@ class GameOfLife:
             *,
             height=None,
             width=None,
-            tick=SIMULATION_TICK
+            batch,
+            group,
+            tick=SIMULATION_TICK,
     ):
-        self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch)
+        self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch, group=group)
         self.changed: typing.Union[set[Cell]] = set(self.grid.cells)
 
         pyglet.clock.schedule_interval(self.run_generation, tick)

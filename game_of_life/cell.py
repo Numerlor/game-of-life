@@ -1,6 +1,5 @@
 import pyglet
 from . import CELL_SIZE
-from . constants import BACKGROUND
 
 
 class Cell:
@@ -13,11 +12,11 @@ class Cell:
     """
     __slots__ = ("x", "y", "batch", "vertex", "is_alive")
 
-    def __init__(self, x: int, y: int, batch: pyglet.graphics.Batch):
+    def __init__(self, x: int, y: int, batch: pyglet.graphics.Batch, group):
         self.x = x
         self.y = y
         self.batch = batch
-        self.vertex = self.create_vertex()
+        self.vertex = self.create_vertex(group)
         self.is_alive = False
 
     def switch(self) -> None:
@@ -25,7 +24,7 @@ class Cell:
         self.is_alive = not self.is_alive
         self.vertex.colors[12:] = (255,)*3*4 if self.is_alive else (0,)*3*4
 
-    def create_vertex(self) -> pyglet.graphics.vertexdomain.IndexedVertexList:
+    def create_vertex(self, group) -> pyglet.graphics.vertexdomain.IndexedVertexList:
         """
         Create and add cell vertex list to batch.
 
@@ -42,7 +41,7 @@ class Cell:
         return self.batch.add_indexed(
             8,
             pyglet.gl.GL_TRIANGLES,
-            BACKGROUND,
+            group,
             [
                 0, 1, 2,
                 0, 2, 3,
