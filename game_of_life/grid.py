@@ -5,26 +5,36 @@ import functools
 
 import pyglet
 
-from game_of_life import CELL_SIZE, WIDTH, HEIGHT, SIMULATION_TICK, Cell
+from game_of_life import CELL_SIZE, SIMULATION_TICK, Cell
 
 
 class GridManager:
     """Manages grid of `Cell`s and simulates the game of life with them."""
 
-    def __init__(self):
+    def __init__(self, start_grid, height, width):
         self.batcher = pyglet.graphics.Batch()
         self.cells: list[Cell] = []
         self.changed: typing.Union[list[Cell], set[Cell]] = self.cells
-        self.row_count = HEIGHT // CELL_SIZE
-        self.col_count = WIDTH // CELL_SIZE
+        self.row_count = height // CELL_SIZE
+        self.col_count = width // CELL_SIZE
 
-    def create(self) -> None:
+        self.create(start_grid)
+
+    def create(self, start_grid: typing.Optional[list]) -> None:
         """Init cell objects for whole grid and populate roughly third of grid."""
-        for y, x in itertools.product(range(self.row_count), range(self.col_count)):
-            cell = Cell(x, y, self.batcher)
-            self.cells.append(cell)
-            if random.random() < .33:
-                cell.switch()
+        if start_grid is None:
+            for y, x in itertools.product(range(self.row_count), range(self.col_count)):
+                cell = Cell(x, y, self.batcher)
+                self.cells.append(cell)
+                if random.random() < .33:
+                    cell.switch()
+        else:
+            for y, row in enumerate(start_grid):
+                for x, state in enumerate(row):
+                    cell = Cell(x, y, self.batcher)
+                    self.cells.append(cell)
+                    if state:
+                        cell.switch()
 
         pyglet.clock.schedule_interval(self.run_generation, SIMULATION_TICK)
 

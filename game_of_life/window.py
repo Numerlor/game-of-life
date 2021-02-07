@@ -1,15 +1,20 @@
 import pyglet
 
-from . import CELL_SIZE, GridManager
+from . import CELL_SIZE, HEIGHT, WIDTH, GridManager, SIMULATION_TICK
 
 
 class GameOfLifeWindow(pyglet.window.Window):
     """Window managing the game of life."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.grid = GridManager()
-        self.grid.create()
+    def __init__(self, start_grid, *args, **kwargs):
+        if start_grid is not None:
+            height = len(start_grid) * CELL_SIZE
+            width = len(start_grid[0]) * CELL_SIZE
+        else:
+            height = HEIGHT
+            width = WIDTH
+        super().__init__(width, height, *args, **kwargs)
+        self.grid = GridManager(start_grid, height, width)
 
     def on_draw(self) -> None:
         """Clear window and draw grid's batch."""
