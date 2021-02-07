@@ -68,9 +68,9 @@ class GameOfLife:
 
     def __init__(self, start_grid, height, width):
         self.grid = Grid(0, 0, CELL_SIZE, height, width)
-        self.changed: typing.Union[list[Cell], set[Cell]] = self.grid.cells
-
         self.grid.create(start_grid)
+        self.changed: typing.Union[set[Cell]] = set(self.grid.cells)
+
         pyglet.clock.schedule_interval(self.run_generation, SIMULATION_TICK)
 
     def run_generation(self, _dt: typing.Optional[float] = None) -> None:
