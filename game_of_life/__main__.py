@@ -4,16 +4,11 @@ import sys
 import pyglet
 
 from game_of_life import GameOfLifeWindow
+from .utils import load_grid_from_file, pad_grid
 
 start_grid = None
-sys.argv.append("templates/spinner.json")
 if len(sys.argv) > 1:
-    with open(sys.argv[1], encoding="utf8") as file:
-        start_grid = json.load(file)
-        # Add padding on direct whole grid loads
-        for row in start_grid:
-            row[:] = [0, *row, 0]
-        row_len = len(start_grid[0])
-        start_grid[:] = [[0]*row_len, *reversed(start_grid), [0]*row_len]
+    start_grid = load_grid_from_file(sys.argv[1])
+    pad_grid(start_grid, 1)
 window = GameOfLifeWindow(start_grid)
 pyglet.app.run()
