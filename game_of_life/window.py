@@ -1,6 +1,6 @@
 import pyglet
 
-from . import CELL_SIZE, HEIGHT, WIDTH, GridManager, SIMULATION_TICK
+from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK
 
 
 class ContextMenu:
@@ -45,13 +45,13 @@ class GameOfLifeWindow(pyglet.window.Window):
             height = HEIGHT
             width = WIDTH
         super().__init__(width, height, *args, **kwargs)
-        self.grid = GridManager(start_grid, height, width)
+        self.game = GameOfLife(start_grid, height, width)
         self.context_menu = None
 
     def on_draw(self) -> None:
         """Clear window and draw grid's batch."""
         self.clear()
-        self.grid.batcher.draw()
+        self.game.grid.batch.draw()
         if self.context_menu is not None:
             self.context_menu.batch.draw()
 
@@ -70,5 +70,5 @@ class GameOfLifeWindow(pyglet.window.Window):
             self.context_menu.add_button("placeholder.png", "placeholder.png")
         elif button == pyglet.window.mouse.LEFT:
             if self.context_menu is None:
-                self.grid.switch_cell_at(x // CELL_SIZE, y // CELL_SIZE)
+                self.game.switch_cell_at(x // CELL_SIZE, y // CELL_SIZE)
             self.context_menu = None
