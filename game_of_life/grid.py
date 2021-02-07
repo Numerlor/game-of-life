@@ -9,25 +9,42 @@ from game_of_life import SIMULATION_TICK, Cell
 
 
 class Grid:
-    def __init__(self, x, y, cell_size, height, width, batch):
+    def __init__(
+            self,
+            x,
+            y,
+            cell_size,
+            start_grid: typing.Optional[list],
+            *,
+            height=None,
+            width=None,
+            batch
+    ):
         self.batch = batch
         self.cells: list[Cell] = []
         self.cell_size = cell_size
-        self.row_count = height // cell_size
-        self.col_count = width // cell_size
+        if start_grid:
+            self.row_count = len(start_grid)
+            self.col_count = len(start_grid[0])
+        else:
+            self.row_count = height // cell_size
+            self.col_count = width // cell_size
+        self.start_grid = start_grid
         self.x = x // cell_size
         self.y = y // cell_size
 
-    def create(self, start_grid: typing.Optional[list]) -> None:
+        self.create()
+
+    def create(self) -> None:
         """Init cell objects for whole grid and populate roughly third of grid."""
-        if start_grid is None:
+        if self.start_grid is None:
             for y, x in itertools.product(range(self.row_count), range(self.col_count)):
                 cell = Cell(self.x+x, self.y + y, self.batch)
                 self.cells.append(cell)
                 if random.random() < .33:
                     cell.switch()
         else:
-            for y, row in enumerate(start_grid):
+            for y, row in enumerate(self.start_grid):
                 for x, state in enumerate(row):
                     cell = Cell(self.x+x, self.y + y, self.batch)
                     self.cells.append(cell)
@@ -72,16 +89,13 @@ class GameOfLife:
             y,
             start_grid,
             cell_size,
-            height,
-            width,
             batch,
+            *,
+            height=None,
+            width=None,
             tick=SIMULATION_TICK
     ):
-        if start_grid is not None:
-            height = cell_size*len(start_grid)
-            width = cell_size*len(start_grid[0])
-        self.grid = Grid(x, y, cell_size, height, width, batch)
-        self.grid.create(start_grid)
+        self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch)
         self.changed: typing.Union[set[Cell]] = set(self.grid.cells)
 
         pyglet.clock.schedule_interval(self.run_generation, tick)
