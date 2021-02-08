@@ -189,12 +189,12 @@ class TemplateWidget(pyglet.gui.WidgetBase):
         if isinstance(self.game, GameOfLife):
             pyglet.clock.unschedule(self.game.run_generation)
             for cell in self.game.grid.cells:
-                cell.vertex.delete()
+                cell.delete()
             for line in self.game.grid.grid_lines:
                 line.delete()
         else:
             for cell in self.game.cells:
-                cell.vertex.delete()
+                cell.delete()
             for line in self.game.grid_lines:
                 line.delete()
         for line in self.lines:
