@@ -195,3 +195,9 @@ class GameOfLife:
         else:
             pyglet.clock.schedule_interval(self.run_generation, tick)
         self.running = not self.running
+
+    def clear(self) -> None:
+        """Kill all cells."""
+        for cell in self.grid.cells:
+            if cell.is_alive:
+                cell.switch()

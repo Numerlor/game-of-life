@@ -108,12 +108,6 @@ class GameOfLifeWindow(pyglet.window.Window):
                 self.template = None
                 self.grid = None
 
-    def clear_game(self) -> None:
-        """Kill all cells."""
-        for y in range(0, self.height//CELL_SIZE):
-            for x in range(0, self.width//CELL_SIZE):
-                self.game.set_cell_state_at(x, y, False)
-
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
         """If we have an active template, keep the grid at the mouse's position."""
         if self.template is not None:
@@ -155,7 +149,7 @@ class GameOfLifeWindow(pyglet.window.Window):
             "clear_depressed.png",
             "clear_depressed.png",
             "clear_hover.png",
-            handler=self.clear_game
+            handler=self.game.clear
         )
 
 
