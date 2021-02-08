@@ -5,21 +5,23 @@ import typing
 
 import pyglet
 
-from game_of_life import SIMULATION_TICK, Cell, FOREGROUND
+from game_of_life import Cell, FOREGROUND, SIMULATION_TICK
 
 
 class Grid:
+    """Grid of `Cell`s."""
+
     def __init__(
             self,
-            x,
-            y,
-            cell_size,
-            start_grid: typing.Optional[list],
+            x: int,
+            y: int,
+            cell_size: int,
+            start_grid: typing.Optional[list[list[int]]],
             *,
-            height=None,
-            width=None,
-            batch,
-            group,
+            height: typing.Optional[int] = None,
+            width: typing.Optional[int] = None,
+            batch: pyglet.graphics.Batch,
+            group: pyglet.graphics.Group,
     ):
         self.batch = batch
         self.group = group
@@ -38,7 +40,11 @@ class Grid:
         self.create()
 
     def create(self) -> None:
-        """Init cell objects for whole grid and populate roughly third of grid."""
+        """
+        Init cell objects for whole grid.
+
+        If a starting grid is not passed, a third of the grid is populated randomly.
+        """
         if self.start_grid is None:
             for y, x in itertools.product(range(self.row_count), range(self.col_count)):
                 cell = Cell(self.cell_size, self.x + x, self.y + y, self.batch, self.group)
@@ -53,7 +59,8 @@ class Grid:
                     if state:
                         cell.switch()
 
-    def create_grid(self):
+    def create_grid(self) -> None:
+        """Create grid from lines."""
         pyglet.gl.glLineWidth(1)
         for y in range(self.row_count + 1):
             self.grid_lines.append(
@@ -85,7 +92,8 @@ class Grid:
                 )
             )
 
-    def move_grid(self, x_target, y_target):
+    def move_grid(self, x_target: int, y_target: int) -> None:
+        """Move self to x_target, y_target."""
         x_dist = x_target - self.x
         y_dist = y_target - self.y
         for cell in self.cells:
@@ -103,7 +111,8 @@ class Grid:
         y = y - self.y
         return self.cells[y * self.col_count + x]
 
-    def get_neighbor_indices(self, x, y):
+    def get_neighbor_indices(self, x: int, y: int) -> typing.Tuple[int, ...]:
+        """Get indices of all cells around x,y."""
         x = x - self.x
         y = y - self.y
         return (
@@ -127,16 +136,16 @@ class GameOfLife:
 
     def __init__(
             self,
-            x,
-            y,
-            start_grid,
-            cell_size,
+            x: int,
+            y: int,
+            start_grid: list[list[int]],
+            cell_size: int,
             *,
-            height=None,
-            width=None,
-            batch,
-            group,
-            tick=SIMULATION_TICK,
+            height: typing.Optional[int] = None,
+            width: typing.Optional[int] = None,
+            batch: pyglet.graphics.Batch,
+            group: pyglet.graphics.Group,
+            tick: int = SIMULATION_TICK,
     ):
         self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch, group=group)
         self.grid.create_grid()
@@ -160,12 +169,18 @@ class GameOfLife:
             for cell in cells_to_update:
                 cell.switch()
 
-    def switch_cell_at(self, col, row):
+    def switch_cell_at(self, col: int, row: int) -> None:
+        """Switch the state of the cell at col, row."""
         cell = self.grid.get_cell_at(col, row)
         self.changed.update(self.get_cell_neighbors(cell))
         cell.switch()
 
-    def set_cell_state_at(self, col, row, state):
+    def set_cell_state_at(self, col: int, row: int, state: bool) -> None:
+        """
+        Set state of cell at col, row to state.
+
+        If the desired state and the cell's current state match, this is a noop.
+        """
         cell = self.grid.get_cell_at(col, row)
         if cell.is_alive is not state:
             self.changed.update(self.get_cell_neighbors(cell))
@@ -176,7 +191,8 @@ class GameOfLife:
         """Yield `cell` and all of its neighbors."""
         return tuple(self.grid.cells[index] for index in self.grid.get_neighbor_indices(cell.x, cell.y))
 
-    def start_stop(self, tick=SIMULATION_TICK):
+    def start_stop(self, tick: int = SIMULATION_TICK) -> None:
+        """Stop the game if it is running, stop it otherwise."""
         if self.running:
             pyglet.clock.unschedule(self.run_generation)
         else:

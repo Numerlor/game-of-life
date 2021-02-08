@@ -1,26 +1,36 @@
+import typing
 from pathlib import Path
 
 import pyglet
 
-from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, Grid
-from .utils import load_grids_from_file, pad_grid
+from . import CELL_SIZE, GameOfLife, Grid, HEIGHT, WIDTH
 from .constants import BACKGROUND, FOREGROUND, MIDDLEGROUND
+from .utils import load_grids_from_file, pad_grid
 
 MAX_PAGE = 2
 
 
 class ContextMenu:
+    """Context menu with a simpler interface for adding widgets."""
+
     BUTTON_HEIGHT = 20
     BUTTON_WIDTH = 50
 
-    def __init__(self, window: pyglet.window.Window, x: int, y: int, batch):
+    def __init__(self, window: pyglet.window.Window, x: int, y: int, batch: pyglet.graphics.Batch):
         self.frame = pyglet.gui.Frame(window)
         self.x = x
         self.y = y
         self.button_amount = 0
         self.batch = batch
 
-    def add_button(self, pressed, depressed, hover=None, handler=None):
+    def add_button(
+            self,
+            pressed: str,
+            depressed: str,
+            hover: typing.Optional[str] = None,
+            handler: typing.Optional[typing.Callable] = None,
+    ) -> None:
+        """Add a button with images set to `pressed`, `depressed` and `hover` and link its on_press to the handler."""
         self.button_amount += 1
         button = pyglet.gui.PushButton(
             self.x,
@@ -38,7 +48,7 @@ class ContextMenu:
 class GameOfLifeWindow(pyglet.window.Window):
     """Window managing the game of life."""
 
-    def __init__(self, start_grid, *args, **kwargs):
+    def __init__(self, start_grid: list[list[int]], *args, **kwargs):
         if start_grid is not None:
             height = len(start_grid) * CELL_SIZE
             width = len(start_grid[0]) * CELL_SIZE
@@ -72,7 +82,17 @@ class GameOfLifeWindow(pyglet.window.Window):
             self.game.run_generation(0)
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
-        """Switch cell state on mouse clicks."""
+        """
+        Handle mouse press events.
+
+        If the right mouse button was clicked, open a context menu.
+
+        If a left right mouse was clicked:
+            * if no context menu is open switch the cell under the cursor
+            * reset the context menu instance to None
+
+            * if a template is active, set the cells under it to its state and reset the tempalte and grid
+        """
         if button == pyglet.window.mouse.RIGHT:
             self.construct_context_menu(x, y)
         elif button == pyglet.window.mouse.LEFT:
@@ -88,29 +108,35 @@ class GameOfLifeWindow(pyglet.window.Window):
                 self.template = None
                 self.grid = None
 
-    def clear_game(self):
+    def clear_game(self) -> None:
+        """Kill all cells."""
         for y in range(0, self.height//CELL_SIZE):
             for x in range(0, self.width//CELL_SIZE):
                 self.game.set_cell_state_at(x, y, False)
 
-    def on_mouse_motion(self, x, y, dx, dy):
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
+        """If we have an active template, keep the grid at the mouse's position."""
         if self.template is not None:
             self.grid.move_grid(x // CELL_SIZE, y // CELL_SIZE)
 
-    def show_popup(self):
+    def on_mouse_drag(self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int) -> None:
+        """When the mouse is dragged, fill cells. If ctrl is held the cells are killed instead."""
+        if buttons == pyglet.window.mouse.LEFT:
+            self.game.set_cell_state_at(x//CELL_SIZE, y//CELL_SIZE, not modifiers & pyglet.window.key.MOD_CTRL)
+
+    def set_grid(self, grid: list[list[int]]) -> None:
+        """Set the template to the received grid."""
+        self.template = grid
+        self.grid = Grid(0, 0, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
+
+    def show_popup(self) -> None:
+        """Show the template selection popup; stop the game if it's running."""
         pyglet.clock.unschedule(self.game.run_generation)
         SelectionPopup(self.set_grid)
         self.game.running = False
 
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        if buttons == pyglet.window.mouse.LEFT:
-            self.game.set_cell_state_at(x//CELL_SIZE, y//CELL_SIZE, not modifiers & pyglet.window.key.MOD_CTRL)
-
-    def set_grid(self, grid):
-        self.template = grid
-        self.grid = Grid(0, 0, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
-
-    def construct_context_menu(self, x, y):
+    def construct_context_menu(self, x: int, y: int) -> None:
+        """Create a context menu."""
         self.context_menu = ContextMenu(self, x, y, self.batch)
         image = "stop" if self.game.running else "start"
         self.context_menu.add_button(
@@ -134,11 +160,33 @@ class GameOfLifeWindow(pyglet.window.Window):
 
 
 class TemplateWidget(pyglet.gui.WidgetBase):
-    def __init__(self, x, y, width, height, grid, name, *, static, batch, callback):
+    """
+    Widget holding a grid template.
+
+    If static is True, the grid template is a Grid instance, otherwise
+    a GameOfLife instance is used and ran.
+
+    When the mouse is pressed inside the widget, the widget calls its callback with the grid.
+    """
+
+    def __init__(
+            self,
+            x: int,
+            y: int,
+            width: int,
+            height: int,
+            grid: list[list[int]],
+            name: str,
+            *,
+            static: bool,
+            batch: pyglet.graphics.Batch,
+            callback: typing.Callable
+    ):
         super().__init__(x, y, width, height)
         grid_width = len(grid[0]) * 5
         grid_height = len(grid)*5
         self.grid = grid
+        self.game: typing.Union[GameOfLife, Grid]
         if static:
             self.game = Grid(
                 x+width//2-grid_width//2,
@@ -164,10 +212,12 @@ class TemplateWidget(pyglet.gui.WidgetBase):
         self.label = pyglet.text.Label(self.name, x=x+50, y=y-20, width=100, batch=batch, anchor_x="center")
         self.construct_outline(x, y, width, height, batch)
 
-    def on_mouse_press(self, x, y, buttons, modifiers):
+    def on_mouse_press(self, x: int, y: int, buttons: int, modifiers: int) -> None:
+        """If we received a mouse press event, call the callback. The parent will handle the destruction."""
         self.callback(self.grid)
 
-    def construct_outline(self,x, y, width, height, batch):
+    def construct_outline(self, x: int, y: int, width: int, height: int, batch: pyglet.graphics.Batch) -> None:
+        """Create square outline with `width` and `height` at (`x`, `y`)."""
         self.lines = []
         lines = (
             ((x, y), (x+width, y)),
@@ -180,7 +230,8 @@ class TemplateWidget(pyglet.gui.WidgetBase):
                 pyglet.shapes.Line(x1, y1, x2, y2, 2, color=(0,)*3, batch=batch)
             )
 
-    def destroy(self):
+    def destroy(self) -> None:
+        """Stop running game and delete all opengl vertices."""
         if isinstance(self.game, GameOfLife):
             pyglet.clock.unschedule(self.game.run_generation)
             for cell in self.game.grid.cells:
@@ -198,7 +249,16 @@ class TemplateWidget(pyglet.gui.WidgetBase):
 
 
 class SelectionPopup(pyglet.window.Window):
-    def __init__(self, pattern_callback, *args, **kwargs):
+    """
+    A popup with grid templates.
+
+    All templates from the templates directory are collected and paginated
+    according to their set PAGE numbers.
+
+    When a template is selected, the `pattern_callback` is called with its grid and the window is closed.
+    """
+
+    def __init__(self, pattern_callback: typing.Callable, *args, **kwargs):
         self.clear()
         super().__init__(*args, **kwargs)
         self.frame = pyglet.gui.Frame(self, cell_size=1)
@@ -211,13 +271,14 @@ class SelectionPopup(pyglet.window.Window):
         self.widgets = []
         self.load_page()
 
-    def add_buttons(self):
-        def load_next_page(*args):
+    def add_buttons(self) -> None:
+        """Add next and previous page buttons to the button frame."""
+        def load_next_page(*args) -> None:
             if self.current_page != MAX_PAGE:
                 self.current_page += 1
                 self.load_page()
 
-        def load_prev_page(*args):
+        def load_prev_page(*args) -> None:
             if self.current_page != 1:
                 self.current_page -= 1
                 self.load_page()
@@ -244,7 +305,14 @@ class SelectionPopup(pyglet.window.Window):
         self.button_frame.add_widget(self.prev_button)
         self.button_frame.add_widget(self.next_button)
 
-    def load_page(self):
+    def load_page(self) -> None:
+        """
+        Load a page of templates.
+
+        First all the previous templates widgets are destroyed,
+        then all templates are searched and the ones matching the current page
+        number are displayed.
+        """
         self.destroy_widgets()
         y = self.height
         for file in Path().glob("templates/*"):
@@ -270,22 +338,24 @@ class SelectionPopup(pyglet.window.Window):
                 self.widgets.append(grid_widget)
                 x += 100
 
-    def on_draw(self):
-        pyglet.gl.glClearColor(44/255, 47/255, 51/255, 1)
-
-        self.clear()
-        self.batch.draw()
-
-    def on_mouse_press(self, x, y, button, modifiers):
+    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
+        """If the click was in a tempalte widget, close the window."""
         if self.frame._cells.get(self.frame._hash(x, y)):
             self.close()
 
-    def destroy_widgets(self):
+    def destroy_widgets(self) -> None: # noqa D102
         for widget in self.widgets:
             widget.destroy()
 
-    def on_close(self):
+    def on_close(self) -> None:
+        """When the window is closed destroy all widgets."""
         self.destroy_widgets()
         self.frame = pyglet.gui.Frame(self, cell_size=1)
         self.widgets.clear()
         super().on_close()
+
+    def on_draw(self): # noqa D102
+        pyglet.gl.glClearColor(44/255, 47/255, 51/255, 1)
+
+        self.clear()
+        self.batch.draw()

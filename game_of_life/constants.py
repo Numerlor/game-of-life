@@ -1,8 +1,8 @@
 import pyglet
 
-CELL_SIZE = 5
-HEIGHT = 300
-WIDTH = 300
+CELL_SIZE = 7
+HEIGHT = 301
+WIDTH = 301
 SIMULATION_TICK = 1/20
 BACKGROUND = pyglet.graphics.OrderedGroup(0)
 MIDDLEGROUND = pyglet.graphics.OrderedGroup(1)
