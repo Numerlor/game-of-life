@@ -1,7 +1,5 @@
 import json
 
-from pathlib import Path
-
 
 def pad_grid(list_: list, shell_size: int) -> None:
     """Add padding to list_ on all sides of size shell_size."""

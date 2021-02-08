@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import pyglet
 
-from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK
-from .constants import FOREGROUND
+from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK, Grid
+from .utils import load_grid_from_file, pad_grid
+from .constants import BACKGROUND, FOREGROUND
 
 
 class ContextMenu:
@@ -73,13 +76,122 @@ class GameOfLifeWindow(pyglet.window.Window):
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """Switch cell state on mouse clicks."""
         if button == pyglet.window.mouse.RIGHT:
-            self.context_menu = ContextMenu(self, x, y)
+            self.context_menu = ContextMenu(self, x, y, self.batch)
             self.context_menu.add_button(
                 "placeholder.png",
-                "placeholder.png", handler=lambda: pyglet.clock.unschedule(self.grid.run_generation)
+                "placeholder.png",
+                handler=lambda: pyglet.clock.unschedule(self.game.run_generation)
             )
-            self.context_menu.add_button("placeholder.png", "placeholder.png")
+            self.context_menu.add_button(
+                "placeholder.png",
+                "placeholder.png",
+                handler=self.show_popup,
+            )
         elif button == pyglet.window.mouse.LEFT:
             if self.context_menu is None:
                 self.game.switch_cell_at(x // CELL_SIZE, y // CELL_SIZE)
             self.context_menu = None
+
+    def show_popup(self):
+        SelectionPopup(self.show_grid)
+
+    def show_grid(self, grid):
+        print(grid)
+
+
+class TemplateWidget(pyglet.gui.WidgetBase):
+    def __init__(self, x, y, width, height, grid, name, *, static, batch, callback):
+        super().__init__(x, y, width, height)
+        grid_width = len(grid[0]) * 5
+        grid_height = len(grid)*5
+        self.grid = grid
+        if static:
+            Grid(
+                x+width//2-grid_width//2,
+                y+height//2-grid_height//2,
+                5,
+                grid,
+                batch=batch,
+                group=FOREGROUND
+            )
+        else:
+            GameOfLife(
+                x+width//2-grid_width//2+1,
+                y+height//2-grid_height//2+1,
+                grid,
+                5,
+                batch=batch,
+                tick=1/10,
+                group=FOREGROUND
+            )
+        pyglet.gl.glLineWidth(2)
+        self.name = name.title() if not name.isupper() else name
+        self.callback = callback
+        self.outline = batch.add_indexed(
+            4, pyglet.gl.GL_LINES, BACKGROUND,
+            [
+                0, 1, 1, 2,
+                1, 2, 2, 3,
+                2, 3, 0, 3,
+                0, 3, 0, 0,
+            ],
+            (
+                "v2i/static", (
+                    x, y,
+                    x+width, y,
+                    x+width, y+height,
+                    x, y+height,
+                )
+            ),
+            ("c3B", (0,)*3*4)
+        )
+        self.label = pyglet.text.Label(self.name, x=x+50, y=y-20, width=100, batch=batch, anchor_x="center")
+
+    def on_mouse_press(self, x, y, buttons, modifiers):
+        self.callback(self.grid)
+
+    def __repr__(self):
+        return f"<TemplateWidget {self.name=} {self.x=}, {self.y=}, {self.width=}, {self.height=}>"
+
+
+class SelectionPopup(pyglet.window.Window):
+    def __init__(self,pattern_callback, *args, **kwargs):
+        self.clear()
+        super().__init__(*args, **kwargs)
+        self.frame = pyglet.gui.Frame(self, cell_size=1)
+        self.batch = pyglet.graphics.Batch()
+        y = self.height
+        for directory in Path().glob("templates/*"):
+            files = list(directory.glob("*"))
+            x = (self.width-100*len(files))//2
+            y = y-150
+            for file in files:
+                grid = load_grid_from_file(file)
+                if "still" in str(file):
+                    static = True
+                else:
+                    static = False
+                pad_grid(grid, 1)
+                grid_widget = TemplateWidget(
+                    x,
+                    y,
+                    100,
+                    100,
+                    grid,
+                    file.stem,
+                    static=static,
+                    batch=self.batch,
+                    callback=pattern_callback
+                )
+                self.frame.add_widget(grid_widget)
+                x += 100
+
+    def on_draw(self):
+        pyglet.gl.glClearColor(44/255, 47/255, 51/255, 1)
+
+        self.clear()
+        self.batch.draw()
+
+    def on_mouse_press(self, x, y, button, modifiers):
+        if self.frame._cells.get(self.frame._hash(x, y)):
+            self.close()

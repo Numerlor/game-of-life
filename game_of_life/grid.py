@@ -91,7 +91,6 @@ class GameOfLife:
             y,
             start_grid,
             cell_size,
-            batch,
             *,
             height=None,
             width=None,
