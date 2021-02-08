@@ -63,6 +63,8 @@ class GameOfLifeWindow(pyglet.window.Window):
         )
         pyglet.clock.unschedule(self.game.run_generation)
         self.context_menu = None
+        self.template = None
+        self.grid = None
 
     def on_draw(self) -> None:
         """Clear window and draw grid's batch."""
@@ -91,13 +93,28 @@ class GameOfLifeWindow(pyglet.window.Window):
             if self.context_menu is None:
                 self.game.switch_cell_at(x // CELL_SIZE, y // CELL_SIZE)
             self.context_menu = None
+            if self.template:
+                for cell in self.grid.cells:
+                    cell.vertex.delete()
+                    for cell_y, row in enumerate(self.template):
+                        for cell_x, state in enumerate(row):
+                            self.game.set_cell_state_at(x // CELL_SIZE + cell_x, y // CELL_SIZE + cell_y, bool(state))
+                self.template = None
+                self.grid = None
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        if self.template is not None:
+            if self.grid is not None:
+                for cell in self.grid.cells:
+                    cell.vertex.delete()
+            self.grid = Grid(x, y, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
 
     def show_popup(self):
         pyglet.clock.unschedule(self.game.run_generation)
         SelectionPopup(self.show_grid)
 
     def show_grid(self, grid):
-        print(grid)
+        self.template = grid
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if buttons == pyglet.window.mouse.LEFT:
@@ -156,7 +173,7 @@ class TemplateWidget(pyglet.gui.WidgetBase):
 
 
 class SelectionPopup(pyglet.window.Window):
-    def __init__(self,pattern_callback, *args, **kwargs):
+    def __init__(self, pattern_callback, *args, **kwargs):
         self.clear()
         super().__init__(*args, **kwargs)
         self.frame = pyglet.gui.Frame(self, cell_size=1)
