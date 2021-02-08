@@ -12,6 +12,13 @@ def pad_grid(list_: list, shell_size: int) -> None:
     list_.extend([[0]*len(list_[0]) for _ in range(shell_size)])
 
 
+def load_grids_from_file(file):
+    grids_data = json.loads(file.read_bytes())
+    for grid in grids_data["templates"].values():
+        grid[:] = grid[::-1]
+    return grids_data
+
+
 def load_grid_from_file(file):
     grid = json.loads(file.read_bytes())
     return grid[::-1]

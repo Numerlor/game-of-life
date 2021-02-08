@@ -3,7 +3,7 @@ from pathlib import Path
 import pyglet
 
 from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK, Grid
-from .utils import load_grid_from_file, pad_grid
+from .utils import load_grids_from_file, pad_grid
 from .constants import BACKGROUND, FOREGROUND, MIDDLEGROUND
 
 
@@ -112,6 +112,7 @@ class GameOfLifeWindow(pyglet.window.Window):
     def show_popup(self):
         pyglet.clock.unschedule(self.game.run_generation)
         SelectionPopup(self.show_grid)
+        self.game.running = False
 
     def show_grid(self, grid):
         self.template = grid
@@ -128,7 +129,7 @@ class TemplateWidget(pyglet.gui.WidgetBase):
         grid_height = len(grid)*5
         self.grid = grid
         if static:
-            g = Grid(
+            self.game = Grid(
                 x+width//2-grid_width//2,
                 y+height//2-grid_height//2,
                 5,
@@ -136,9 +137,9 @@ class TemplateWidget(pyglet.gui.WidgetBase):
                 batch=batch,
                 group=MIDDLEGROUND
             )
-            g.create_grid()
+            self.game.create_grid()
         else:
-            GameOfLife(
+            self.game = GameOfLife(
                 x+width//2-grid_width//2+1,
                 y+height//2-grid_height//2+1,
                 grid,
@@ -171,6 +172,22 @@ class TemplateWidget(pyglet.gui.WidgetBase):
                 pyglet.shapes.Line(x1, y1, x2, y2, 2, color=(0,)*3, batch=batch)
             )
 
+    def destroy(self):
+        if isinstance(self.game, GameOfLife):
+            pyglet.clock.unschedule(self.game.run_generation)
+            for cell in self.game.grid.cells:
+                cell.vertex.delete()
+            for line in self.game.grid.grid_lines:
+                line.delete()
+        else:
+            for cell in self.game.cells:
+                cell.vertex.delete()
+            for line in self.game.grid_lines:
+                line.delete()
+        for line in self.lines:
+            line.delete()
+        self.label.delete()
+
 
 class SelectionPopup(pyglet.window.Window):
     def __init__(self, pattern_callback, *args, **kwargs):
@@ -178,17 +195,57 @@ class SelectionPopup(pyglet.window.Window):
         super().__init__(*args, **kwargs)
         self.frame = pyglet.gui.Frame(self, cell_size=1)
         self.batch = pyglet.graphics.Batch()
+        self.button_frame = pyglet.gui.Frame(self)
+
+        self.callback = pattern_callback
+        self.current_page = 1
+        self.widgets = []
+        self.load_page()
+
+    def add_buttons(self):
+        def load_next_page(*args):
+            self.current_page += 1
+            self.load_page()
+
+        def load_prev_page(*args):
+            self.current_page -= 1
+            self.load_page()
+
+        self.prev_button = pyglet.gui.PushButton(
+            20,
+            self.height // 2,
+            pyglet.resource.image("template.png"),
+            pyglet.resource.image("template.png"),
+            pyglet.resource.image("hover_template.png"),
+            self.batch,
+        )
+        self.prev_button.set_handler("on_mouse_press", load_prev_page)
+
+        self.next_button = pyglet.gui.PushButton(
+            self.width - 20,
+            self.height // 2,
+            pyglet.resource.image("template.png"),
+            pyglet.resource.image("template.png"),
+            pyglet.resource.image("hover_template.png"),
+            self.batch,
+        )
+        self.next_button.set_handler("on_mouse_press", load_next_page)
+        self.button_frame.add_widget(self.prev_button)
+        self.button_frame.add_widget(self.next_button)
+
+    def load_page(self):
+        for widget in self.widgets:
+            widget.destroy()
+            self.frame = pyglet.gui.Frame(self, cell_size=1)
+        self.widgets = []
         y = self.height
-        for directory in Path().glob("templates/*"):
-            files = list(directory.glob("*"))
-            x = (self.width-100*len(files))//2
+        for file in Path().glob("templates/*"):
+            grids_data = load_grids_from_file(file)
+            if grids_data["PAGE"] != self.current_page:
+                continue
+            x = (self.width-100*len(grids_data["templates"]))//2
             y = y-150
-            for file in files:
-                grid = load_grid_from_file(file)
-                if "still" in str(file):
-                    static = True
-                else:
-                    static = False
+            for name, grid in grids_data["templates"].items():
                 pad_grid(grid, 1)
                 grid_widget = TemplateWidget(
                     x,
@@ -196,12 +253,13 @@ class SelectionPopup(pyglet.window.Window):
                     100,
                     100,
                     grid,
-                    file.stem,
-                    static=static,
+                    name,
+                    static=grids_data["STATIC"],
                     batch=self.batch,
-                    callback=pattern_callback
+                    callback=self.callback
                 )
                 self.frame.add_widget(grid_widget)
+                self.widgets.append(grid_widget)
                 x += 100
 
     def on_draw(self):

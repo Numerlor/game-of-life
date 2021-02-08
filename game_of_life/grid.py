@@ -1,7 +1,7 @@
+import functools
 import itertools
 import random
 import typing
-import functools
 
 import pyglet
 
@@ -34,51 +34,55 @@ class Grid:
         self.start_grid = start_grid
         self.x = x // cell_size
         self.y = y // cell_size
-
+        self.grid_lines = []
         self.create()
 
     def create(self) -> None:
         """Init cell objects for whole grid and populate roughly third of grid."""
         if self.start_grid is None:
             for y, x in itertools.product(range(self.row_count), range(self.col_count)):
-                cell = Cell(self.x+x, self.y + y, self.batch, self.group)
+                cell = Cell(self.x + x, self.y + y, self.batch, self.group)
                 self.cells.append(cell)
                 if random.random() < .33:
                     cell.switch()
         else:
             for y, row in enumerate(self.start_grid):
                 for x, state in enumerate(row):
-                    cell = Cell(self.x+x, self.y + y, self.batch, self.group)
+                    cell = Cell(self.x + x, self.y + y, self.batch, self.group)
                     self.cells.append(cell)
                     if state:
                         cell.switch()
 
     def create_grid(self):
         pyglet.gl.glLineWidth(1)
-        for y in range(self.row_count+1):
-            self.batch.add(
-                2, pyglet.gl.GL_LINES, FOREGROUND,
-                (
-                    "v2i/static",
+        for y in range(self.row_count + 1):
+            self.grid_lines.append(
+                self.batch.add(
+                    2, pyglet.gl.GL_LINES, FOREGROUND,
                     (
-                        self.x*self.cell_size, (self.y+y)*self.cell_size,
-                        (self.x+self.col_count)*self.cell_size, (self.y+y)*self.cell_size
+                        "v2i/static",
+                        (
+                            self.x * self.cell_size, (self.y + y) * self.cell_size,
+                            (self.x + self.col_count) * self.cell_size, (self.y + y) * self.cell_size,
+                        ),
                     ),
-                ),
-                ("c3B", (180,) * 3 * 2)
+                    ("c3B", (180,) * 3 * 2)
+                )
             )
-        for x in range(self.col_count+1):
-            self.batch.add(
-                2, pyglet.gl.GL_LINES, FOREGROUND,
-                (
-                    "v2i/static",
+        for x in range(self.col_count + 1):
+            self.grid_lines.append(
+                self.batch.add(
+                    2, pyglet.gl.GL_LINES, FOREGROUND,
                     (
-                        (self.x+x)*self.cell_size, self.y*self.cell_size,
-                        (self.x+x)*self.cell_size, (self.y+self.row_count)*self.cell_size
-                    )
-                ),
-                ("c3B", (180,) * 3*2)
+                        "v2i/static",
+                        (
+                            (self.x + x) * self.cell_size, self.y * self.cell_size,
+                            (self.x + x) * self.cell_size, (self.y + self.row_count) * self.cell_size,
+                        )
+                    ),
+                    ("c3B", (180,) * 3 * 2)
 
+                )
             )
 
     def get_cell_at(self, x: int, y: int) -> Cell:
@@ -89,7 +93,7 @@ class Grid:
         """
         x = x - self.x
         y = y - self.y
-        return self.cells[y*self.col_count+x]
+        return self.cells[y * self.col_count + x]
 
     def get_neighbor_indices(self, x, y):
         x = x - self.x
@@ -129,7 +133,7 @@ class GameOfLife:
         self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch, group=group)
         self.grid.create_grid()
         self.changed: typing.Union[set[Cell]] = set(self.grid.cells)
-
+        self.running = True
         pyglet.clock.schedule_interval(self.run_generation, tick)
 
     def run_generation(self, _dt: typing.Optional[float] = None) -> None:
@@ -163,3 +167,10 @@ class GameOfLife:
     def get_cell_neighbors(self, cell: Cell) -> typing.Iterator[Cell]:
         """Yield `cell` and all of its neighbors."""
         return tuple(self.grid.cells[index] for index in self.grid.get_neighbor_indices(cell.x, cell.y))
+
+    def start_stop(self, tick=SIMULATION_TICK):
+        if self.running:
+            pyglet.clock.unschedule(self.run_generation)
+        else:
+            pyglet.clock.schedule_interval(self.run_generation, tick)
+        self.running = not self.running
