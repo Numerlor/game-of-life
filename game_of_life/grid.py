@@ -142,7 +142,7 @@ class GameOfLife:
             width: typing.Optional[int] = None,
             batch: pyglet.graphics.Batch,
             group: pyglet.graphics.Group,
-            tick: int = SIMULATION_TICK,
+            tick: float = SIMULATION_TICK,
     ):
         self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch, group=group)
         self.grid.create_grid(batch)
@@ -188,7 +188,7 @@ class GameOfLife:
         """Yield `cell` and all of its neighbors."""
         return tuple(self.grid.cells[index] for index in self.grid.get_neighbor_indices(cell.x, cell.y))
 
-    def start_stop(self, tick: int = SIMULATION_TICK) -> None:
+    def start_stop(self, tick: float = SIMULATION_TICK) -> None:
         """Stop the game if it is running, stop it otherwise."""
         if self.running:
             pyglet.clock.unschedule(self.run_generation)
