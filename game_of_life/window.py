@@ -128,34 +128,29 @@ class TemplateWidget(pyglet.gui.WidgetBase):
                 tick=1/10,
                 group=FOREGROUND
             )
-        pyglet.gl.glLineWidth(2)
         self.name = name.title() if not name.isupper() else name
         self.callback = callback
-        self.outline = batch.add_indexed(
-            4, pyglet.gl.GL_LINES, BACKGROUND,
-            [
-                0, 1, 1, 2,
-                1, 2, 2, 3,
-                2, 3, 0, 3,
-                0, 3, 0, 0,
-            ],
-            (
-                "v2i/static", (
-                    x, y,
-                    x+width, y,
-                    x+width, y+height,
-                    x, y+height,
-                )
-            ),
-            ("c3B", (0,)*3*4)
-        )
         self.label = pyglet.text.Label(self.name, x=x+50, y=y-20, width=100, batch=batch, anchor_x="center")
+        self.construct_outline(x, y, width, height, batch)
 
     def on_mouse_press(self, x, y, buttons, modifiers):
         self.callback(self.grid)
 
     def __repr__(self):
         return f"<TemplateWidget {self.name=} {self.x=}, {self.y=}, {self.width=}, {self.height=}>"
+
+    def construct_outline(self,x, y, width, height, batch):
+        self.lines = []
+        lines = (
+            ((x, y), (x+width, y)),
+            ((x+width, y), (x+width, y+height,)),
+            ((x+width, y+height,), (x, y+height)),
+            ((x, y+height), (x, y)),
+        )
+        for (x1, y1), (x2, y2) in lines:
+            self.lines.append(
+                pyglet.shapes.Line(x1, y1, x2, y2, 2, color=(0,)*3, batch=batch)
+            )
 
 
 class SelectionPopup(pyglet.window.Window):
