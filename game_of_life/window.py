@@ -34,12 +34,6 @@ class ContextMenu:
         button.set_handler("on_press", handler)
         self.frame.add_widget(button)
 
-    def point_intersects(self, x, y) -> bool:
-        return (
-                self.x < x < self.x + self.BUTTON_WIDTH
-                and self.y - self.BUTTON_HEIGHT*self.button_amount < y < self.y
-        )
-
 
 class GameOfLifeWindow(pyglet.window.Window):
     """Window managing the game of life."""
