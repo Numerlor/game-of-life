@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pyglet
 
-from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK, Grid
+from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, Grid
 from .utils import load_grids_from_file, pad_grid
 from .constants import BACKGROUND, FOREGROUND, MIDDLEGROUND
 
@@ -106,7 +106,7 @@ class GameOfLifeWindow(pyglet.window.Window):
             self.context_menu = None
             if self.template:
                 for cell in self.grid.cells:
-                    cell.vertex.delete()
+                    cell.delete()
                     for cell_y, row in enumerate(self.template):
                         for cell_x, state in enumerate(row):
                             self.game.set_cell_state_at(x // CELL_SIZE + cell_x, y // CELL_SIZE + cell_y, bool(state))
@@ -122,7 +122,7 @@ class GameOfLifeWindow(pyglet.window.Window):
         if self.template is not None:
             if self.grid is not None:
                 for cell in self.grid.cells:
-                    cell.vertex.delete()
+                    cell.delete()
             self.grid = Grid(x, y, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
 
     def show_popup(self):
