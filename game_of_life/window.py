@@ -250,10 +250,7 @@ class SelectionPopup(pyglet.window.Window):
         self.button_frame.add_widget(self.next_button)
 
     def load_page(self):
-        for widget in self.widgets:
-            widget.destroy()
-            self.frame = pyglet.gui.Frame(self, cell_size=1)
-        self.widgets = []
+        self.destroy_widgets()
         y = self.height
         for file in Path().glob("templates/*"):
             grids_data = load_grids_from_file(file)
@@ -287,3 +284,13 @@ class SelectionPopup(pyglet.window.Window):
     def on_mouse_press(self, x, y, button, modifiers):
         if self.frame._cells.get(self.frame._hash(x, y)):
             self.close()
+
+    def destroy_widgets(self):
+        for widget in self.widgets:
+            widget.destroy()
+
+    def on_close(self):
+        self.destroy_widgets()
+        self.frame = pyglet.gui.Frame(self, cell_size=1)
+        self.widgets.clear()
+        super().on_close()
