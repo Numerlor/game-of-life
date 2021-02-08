@@ -107,6 +107,12 @@ class GameOfLifeWindow(pyglet.window.Window):
                 "templates_hover.png",
                 handler=self.show_popup,
             )
+            self.context_menu.add_button(
+                "clear_depressed.png",
+                "clear_depressed.png",
+                "clear_hover.png",
+                handler=self.clear_game
+            )
         elif button == pyglet.window.mouse.LEFT:
             if self.context_menu is None:
                 self.game.switch_cell_at(x // CELL_SIZE, y // CELL_SIZE)
@@ -119,6 +125,11 @@ class GameOfLifeWindow(pyglet.window.Window):
                             self.game.set_cell_state_at(x // CELL_SIZE + cell_x, y // CELL_SIZE + cell_y, bool(state))
                 self.template = None
                 self.grid = None
+
+    def clear_game(self):
+        for y in range(0, self.height//CELL_SIZE):
+            for x in range(0, self.width//CELL_SIZE):
+                self.game.set_cell_state_at(x, y, False)
 
     def on_mouse_motion(self, x, y, dx, dy):
         if self.template is not None:
