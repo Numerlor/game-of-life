@@ -172,9 +172,6 @@ class TemplateWidget(pyglet.gui.WidgetBase):
     def on_mouse_press(self, x, y, buttons, modifiers):
         self.callback(self.grid)
 
-    def __repr__(self):
-        return f"<TemplateWidget {self.name=} {self.x=}, {self.y=}, {self.width=}, {self.height=}>"
-
     def construct_outline(self,x, y, width, height, batch):
         self.lines = []
         lines = (
