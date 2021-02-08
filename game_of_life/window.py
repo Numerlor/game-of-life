@@ -61,7 +61,6 @@ class GameOfLifeWindow(pyglet.window.Window):
             batch=self.batch,
             group=BACKGROUND,
         )
-        pyglet.clock.unschedule(self.game.run_generation)
         self.context_menu = None
         self.template = None
         self.grid = None
@@ -73,20 +72,39 @@ class GameOfLifeWindow(pyglet.window.Window):
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
         """Run a single generation when a key is pressed."""
-        print(self.grid.changed.__len__())
+        if symbol == pyglet.window.key.A:
+            for cell in self.game.grid.cells:
+                cell.switch()
+                cell.switch()
+        elif symbol == pyglet.window.key.B:
+            if modifiers & pyglet.window.key.MOD_SHIFT:
+                pyglet.clock.schedule_interval(self.game.run_generation, SIMULATION_TICK)
+            else:
+                pyglet.clock.unschedule(self.game.run_generation)
+        elif symbol == pyglet.window.key.C:
+            self.game.run_generation(0)
+        elif symbol == pyglet.window.key.S:
+            self.game.run_generation(0)
+        elif symbol == pyglet.window.key.L:
+            print((GridManager.get_cell_neighbors).cache_info())
+        elif symbol == pyglet.window.key.O:
+            self.window = pyglet.window.Window()
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """Switch cell state on mouse clicks."""
         if button == pyglet.window.mouse.RIGHT:
             self.context_menu = ContextMenu(self, x, y, self.batch)
+            image = "stop" if self.game.running else "start"
             self.context_menu.add_button(
-                "placeholder.png",
-                "placeholder.png",
-                handler=lambda: pyglet.clock.unschedule(self.game.run_generation)
+                f"{image}_depressed.png",
+                f"{image}_depressed.png",
+                f"{image}_hover.png",
+                handler=self.game.start_stop
             )
             self.context_menu.add_button(
-                "placeholder.png",
-                "placeholder.png",
+                "templates_depressed.png",
+                "templates_depressed.png",
+                "templates_hover.png",
                 handler=self.show_popup,
             )
         elif button == pyglet.window.mouse.LEFT:
@@ -199,6 +217,7 @@ class SelectionPopup(pyglet.window.Window):
 
         self.callback = pattern_callback
         self.current_page = 1
+        self.add_buttons()
         self.widgets = []
         self.load_page()
 
