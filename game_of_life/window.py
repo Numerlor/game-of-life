@@ -98,6 +98,10 @@ class GameOfLifeWindow(pyglet.window.Window):
     def show_grid(self, grid):
         print(grid)
 
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        if buttons == pyglet.window.mouse.LEFT:
+            self.game.set_cell_state_at(x//CELL_SIZE, y//CELL_SIZE, not modifiers & pyglet.window.key.MOD_CTRL)
+
 
 class TemplateWidget(pyglet.gui.WidgetBase):
     def __init__(self, x, y, width, height, grid, name, *, static, batch, callback):
