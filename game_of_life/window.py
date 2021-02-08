@@ -6,6 +6,8 @@ from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK, Grid
 from .utils import load_grids_from_file, pad_grid
 from .constants import BACKGROUND, FOREGROUND, MIDDLEGROUND
 
+MAX_PAGE = 2
+
 
 class ContextMenu:
     BUTTON_HEIGHT = 20
@@ -234,12 +236,14 @@ class SelectionPopup(pyglet.window.Window):
 
     def add_buttons(self):
         def load_next_page(*args):
-            self.current_page += 1
-            self.load_page()
+            if self.current_page != MAX_PAGE:
+                self.current_page += 1
+                self.load_page()
 
         def load_prev_page(*args):
-            self.current_page -= 1
-            self.load_page()
+            if self.current_page != 1:
+                self.current_page -= 1
+                self.load_page()
 
         self.prev_button = pyglet.gui.PushButton(
             20,
