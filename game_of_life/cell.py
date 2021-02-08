@@ -22,7 +22,7 @@ class Cell:
     def switch(self) -> None:
         """Delete previous vertex, display black cell and set `is_alive` to False."""
         self.is_alive = not self.is_alive
-        self.vertex.colors[12:] = (255,)*3*4 if self.is_alive else (0,)*3*4
+        self.vertex.colors[:] = (255,)*3*4 if self.is_alive else (0,)*3*4
 
     def create_vertex(self, group) -> pyglet.graphics.vertexdomain.IndexedVertexList:
         """
@@ -36,10 +36,8 @@ class Cell:
         y_base = CELL_SIZE * self.y
         y_offset = y_base + CELL_SIZE
 
-        grid_size = 0.5
-
         return self.batch.add_indexed(
-            8,
+            4,
             pyglet.gl.GL_TRIANGLES,
             group,
             [
@@ -55,14 +53,9 @@ class Cell:
                     x_offset, y_base,
                     x_offset, y_offset,
                     x_base, y_offset,
-
-                    x_base + grid_size, y_base + grid_size,
-                    x_offset - grid_size, y_base + grid_size,
-                    x_offset - grid_size, y_offset - grid_size,
-                    x_base + grid_size, y_offset - grid_size,
                 )
             ),
-            ("c3B", (180,) * 3 * 4 + (0,) * 3 * 4)
+            ("c3B", (0,) * 3 * 4)
 
         )
 

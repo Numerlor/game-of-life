@@ -4,7 +4,7 @@ import pyglet
 
 from . import CELL_SIZE, HEIGHT, WIDTH, GameOfLife, SIMULATION_TICK, Grid
 from .utils import load_grid_from_file, pad_grid
-from .constants import BACKGROUND, FOREGROUND
+from .constants import BACKGROUND, FOREGROUND, MIDDLEGROUND
 
 
 class ContextMenu:
@@ -111,14 +111,15 @@ class TemplateWidget(pyglet.gui.WidgetBase):
         grid_height = len(grid)*5
         self.grid = grid
         if static:
-            Grid(
+            g = Grid(
                 x+width//2-grid_width//2,
                 y+height//2-grid_height//2,
                 5,
                 grid,
                 batch=batch,
-                group=FOREGROUND
+                group=MIDDLEGROUND
             )
+            g.create_grid()
         else:
             GameOfLife(
                 x+width//2-grid_width//2+1,
@@ -127,7 +128,7 @@ class TemplateWidget(pyglet.gui.WidgetBase):
                 5,
                 batch=batch,
                 tick=1/10,
-                group=FOREGROUND
+                group=MIDDLEGROUND
             )
         self.name = name.title() if not name.isupper() else name
         self.callback = callback

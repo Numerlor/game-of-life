@@ -5,7 +5,7 @@ import functools
 
 import pyglet
 
-from game_of_life import SIMULATION_TICK, Cell
+from game_of_life import SIMULATION_TICK, Cell, FOREGROUND
 
 
 class Grid:
@@ -53,6 +53,34 @@ class Grid:
                     if state:
                         cell.switch()
 
+    def create_grid(self):
+        pyglet.gl.glLineWidth(1)
+        for y in range(self.row_count+1):
+            self.batch.add(
+                2, pyglet.gl.GL_LINES, FOREGROUND,
+                (
+                    "v2i/static",
+                    (
+                        self.x*self.cell_size, (self.y+y)*self.cell_size,
+                        (self.x+self.col_count)*self.cell_size, (self.y+y)*self.cell_size
+                    ),
+                ),
+                ("c3B", (180,) * 3 * 2)
+            )
+        for x in range(self.col_count+1):
+            self.batch.add(
+                2, pyglet.gl.GL_LINES, FOREGROUND,
+                (
+                    "v2i/static",
+                    (
+                        (self.x+x)*self.cell_size, self.y*self.cell_size,
+                        (self.x+x)*self.cell_size, (self.y+self.row_count)*self.cell_size
+                    )
+                ),
+                ("c3B", (180,) * 3*2)
+
+            )
+
     def get_cell_at(self, x: int, y: int) -> Cell:
         """
         Get the `Cell` object at `x` and y`.
@@ -99,6 +127,7 @@ class GameOfLife:
             tick=SIMULATION_TICK,
     ):
         self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch, group=group)
+        self.grid.create_grid()
         self.changed: typing.Union[set[Cell]] = set(self.grid.cells)
 
         pyglet.clock.schedule_interval(self.run_generation, tick)
@@ -123,6 +152,12 @@ class GameOfLife:
         cell = self.grid.get_cell_at(col, row)
         self.changed.update(self.get_cell_neighbors(cell))
         cell.switch()
+
+    def set_cell_state_at(self, col, row, state):
+        cell = self.grid.get_cell_at(col, row)
+        if cell.is_alive is not state:
+            self.changed.update(self.get_cell_neighbors(cell))
+            cell.switch()
 
     @functools.cache
     def get_cell_neighbors(self, cell: Cell) -> typing.Iterator[Cell]:
