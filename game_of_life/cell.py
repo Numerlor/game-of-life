@@ -30,5 +30,9 @@ class Cell:
     def y(self):
         return self.rect.y // self.rect.height
 
+    def move(self, x, y):
+        self.rect.x = x * self.rect.width
+        self.rect.y = y * self.rect.width
+
     def __repr__(self):
         return f"<Cell x={self.x}, y={self.y}, alive={self.is_alive}>"

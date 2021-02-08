@@ -120,10 +120,10 @@ class GameOfLifeWindow(pyglet.window.Window):
 
     def on_mouse_motion(self, x, y, dx, dy):
         if self.template is not None:
-            if self.grid is not None:
-                for cell in self.grid.cells:
-                    cell.delete()
-            self.grid = Grid(x, y, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
+            if self.grid is None:
+                self.grid = Grid(x, y, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
+            else:
+                self.grid.move_grid(x // CELL_SIZE, y // CELL_SIZE)
 
     def show_popup(self):
         pyglet.clock.unschedule(self.game.run_generation)

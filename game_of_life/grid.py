@@ -85,6 +85,14 @@ class Grid:
                 )
             )
 
+    def move_grid(self, x_target, y_target):
+        x_dist = x_target - self.x
+        y_dist = y_target - self.y
+        for cell in self.cells:
+            cell.move(cell.x + x_dist, cell.y + y_dist)
+        self.x = x_target
+        self.y = y_target
+
     def get_cell_at(self, x: int, y: int) -> Cell:
         """
         Get the `Cell` object at `x` and y`.
