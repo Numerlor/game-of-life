@@ -74,23 +74,8 @@ class GameOfLifeWindow(pyglet.window.Window):
 
     def on_key_press(self, symbol: int, modifiers: int) -> None:
         """Run a single generation when a key is pressed."""
-        if symbol == pyglet.window.key.A:
-            for cell in self.game.grid.cells:
-                cell.switch()
-                cell.switch()
-        elif symbol == pyglet.window.key.B:
-            if modifiers & pyglet.window.key.MOD_SHIFT:
-                pyglet.clock.schedule_interval(self.game.run_generation, SIMULATION_TICK)
-            else:
-                pyglet.clock.unschedule(self.game.run_generation)
-        elif symbol == pyglet.window.key.C:
+        if symbol == pyglet.window.key.SPACE:
             self.game.run_generation(0)
-        elif symbol == pyglet.window.key.S:
-            self.game.run_generation(0)
-        elif symbol == pyglet.window.key.L:
-            print((GridManager.get_cell_neighbors).cache_info())
-        elif symbol == pyglet.window.key.O:
-            self.window = pyglet.window.Window()
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """Switch cell state on mouse clicks."""
