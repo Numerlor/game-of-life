@@ -95,10 +95,7 @@ class GameOfLifeWindow(pyglet.window.Window):
 
     def on_mouse_motion(self, x, y, dx, dy):
         if self.template is not None:
-            if self.grid is None:
-                self.grid = Grid(x, y, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
-            else:
-                self.grid.move_grid(x // CELL_SIZE, y // CELL_SIZE)
+            self.grid.move_grid(x // CELL_SIZE, y // CELL_SIZE)
 
     def show_popup(self):
         pyglet.clock.unschedule(self.game.run_generation)
@@ -111,6 +108,7 @@ class GameOfLifeWindow(pyglet.window.Window):
 
     def set_grid(self, grid):
         self.template = grid
+        self.grid = Grid(0, 0, CELL_SIZE, self.template, batch=self.batch, group=MIDDLEGROUND)
 
     def construct_context_menu(self, x, y):
         self.context_menu = ContextMenu(self, x, y, self.batch)
