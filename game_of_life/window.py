@@ -196,7 +196,7 @@ class TemplateWidget(pyglet.gui.WidgetBase):
                 batch=batch,
                 group=MIDDLEGROUND
             )
-            self.game.create_grid()
+            self.game.create_grid(batch)
         else:
             self.game = GameOfLife(
                 x+width//2-grid_width//2+1,
