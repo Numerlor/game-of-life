@@ -80,26 +80,7 @@ class GameOfLifeWindow(pyglet.window.Window):
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """Switch cell state on mouse clicks."""
         if button == pyglet.window.mouse.RIGHT:
-            self.context_menu = ContextMenu(self, x, y, self.batch)
-            image = "stop" if self.game.running else "start"
-            self.context_menu.add_button(
-                f"{image}_depressed.png",
-                f"{image}_depressed.png",
-                f"{image}_hover.png",
-                handler=self.game.start_stop
-            )
-            self.context_menu.add_button(
-                "templates_depressed.png",
-                "templates_depressed.png",
-                "templates_hover.png",
-                handler=self.show_popup,
-            )
-            self.context_menu.add_button(
-                "clear_depressed.png",
-                "clear_depressed.png",
-                "clear_hover.png",
-                handler=self.clear_game
-            )
+            self.construct_context_menu(x, y)
         elif button == pyglet.window.mouse.LEFT:
             if self.context_menu is None:
                 self.game.switch_cell_at(x // CELL_SIZE, y // CELL_SIZE)
@@ -107,9 +88,9 @@ class GameOfLifeWindow(pyglet.window.Window):
             if self.template:
                 for cell in self.grid.cells:
                     cell.delete()
-                    for cell_y, row in enumerate(self.template):
-                        for cell_x, state in enumerate(row):
-                            self.game.set_cell_state_at(x // CELL_SIZE + cell_x, y // CELL_SIZE + cell_y, bool(state))
+                for cell_y, row in enumerate(self.template):
+                    for cell_x, state in enumerate(row):
+                        self.game.set_cell_state_at(x // CELL_SIZE + cell_x, y // CELL_SIZE + cell_y, bool(state))
                 self.template = None
                 self.grid = None
 
@@ -127,15 +108,37 @@ class GameOfLifeWindow(pyglet.window.Window):
 
     def show_popup(self):
         pyglet.clock.unschedule(self.game.run_generation)
-        SelectionPopup(self.show_grid)
+        SelectionPopup(self.set_grid)
         self.game.running = False
-
-    def show_grid(self, grid):
-        self.template = grid
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if buttons == pyglet.window.mouse.LEFT:
             self.game.set_cell_state_at(x//CELL_SIZE, y//CELL_SIZE, not modifiers & pyglet.window.key.MOD_CTRL)
+
+    def set_grid(self, grid):
+        self.template = grid
+
+    def construct_context_menu(self, x, y):
+        self.context_menu = ContextMenu(self, x, y, self.batch)
+        image = "stop" if self.game.running else "start"
+        self.context_menu.add_button(
+            f"{image}_depressed.png",
+            f"{image}_depressed.png",
+            f"{image}_hover.png",
+            handler=self.game.start_stop
+        )
+        self.context_menu.add_button(
+            "templates_depressed.png",
+            "templates_depressed.png",
+            "templates_hover.png",
+            handler=self.show_popup,
+        )
+        self.context_menu.add_button(
+            "clear_depressed.png",
+            "clear_depressed.png",
+            "clear_hover.png",
+            handler=self.clear_game
+        )
 
 
 class TemplateWidget(pyglet.gui.WidgetBase):
