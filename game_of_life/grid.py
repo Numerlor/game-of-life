@@ -41,14 +41,14 @@ class Grid:
         """Init cell objects for whole grid and populate roughly third of grid."""
         if self.start_grid is None:
             for y, x in itertools.product(range(self.row_count), range(self.col_count)):
-                cell = Cell(self.x + x, self.y + y, self.batch, self.group)
+                cell = Cell(self.cell_size, self.x + x, self.y + y, self.batch, self.group)
                 self.cells.append(cell)
                 if random.random() < .33:
                     cell.switch()
         else:
             for y, row in enumerate(self.start_grid):
                 for x, state in enumerate(row):
-                    cell = Cell(self.x + x, self.y + y, self.batch, self.group)
+                    cell = Cell(self.cell_size, self.x + x, self.y + y, self.batch, self.group)
                     self.cells.append(cell)
                     if state:
                         cell.switch()
