@@ -93,6 +93,7 @@ class GameOfLifeWindow(pyglet.window.Window):
             self.context_menu = None
 
     def show_popup(self):
+        pyglet.clock.unschedule(self.game.run_generation)
         SelectionPopup(self.show_grid)
 
     def show_grid(self, grid):
