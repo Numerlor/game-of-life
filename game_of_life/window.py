@@ -191,7 +191,7 @@ class TemplateWidget(pyglet.gui.WidgetBase):
         if not static:
             self.game = GameOfLife(self.grid)
         self.name = name.title() if not name.isupper() else name
-        self.label = pyglet.text.Label(self.name, x=x+50, y=y-20, width=100, batch=batch, anchor_x="center")
+        self.label = pyglet.text.Label(self.name, x=x+width//2, y=y-20, width=width, batch=batch, anchor_x="center")
         self.construct_outline(x, y, width, height, batch)
 
     def on_mouse_press(self, x: int, y: int, buttons: int, modifiers: int) -> None:
