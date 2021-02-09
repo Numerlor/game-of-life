@@ -297,7 +297,7 @@ class SelectionPopup(pyglet.window.Window):
         """
         self.destroy_widgets()
         y = self.height
-        for file in Path().glob("templates/*"):
+        for file in Path().glob("templates/*.json"):
             grids_data = load_grids_from_file(file)
             if grids_data["PAGE"] != self.current_page:
                 continue
