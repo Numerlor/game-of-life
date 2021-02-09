@@ -322,7 +322,7 @@ class SelectionPopup(pyglet.window.Window):
                 x += width
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
-        """If the click was in a tempalte widget, close the window."""
+        """If the click was in a template widget, close the window."""
         if self.frame._cells.get(self.frame._hash(x, y)):
             self.close()
 
