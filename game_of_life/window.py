@@ -301,14 +301,15 @@ class SelectionPopup(pyglet.window.Window):
             grids_data = load_grids_from_file(file)
             if grids_data["PAGE"] != self.current_page:
                 continue
-            x = (self.width-100*len(grids_data["templates"]))//2
+            x = (self.width - sum(100+((len(grid[0])*5)//100)*100 for grid in grids_data["templates"].values()))//2
             y = y-150
             for name, grid in grids_data["templates"].items():
                 pad_grid(grid, 1)
+                width = 100+((len(grid[0])*5)//100)*100
                 grid_widget = TemplateWidget(
                     x,
                     y,
-                    100,
+                    width,
                     100,
                     grid,
                     name,
@@ -318,7 +319,7 @@ class SelectionPopup(pyglet.window.Window):
                 )
                 self.frame.add_widget(grid_widget)
                 self.widgets.append(grid_widget)
-                x += 100
+                x += width
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """If the click was in a tempalte widget, close the window."""
@@ -328,12 +329,13 @@ class SelectionPopup(pyglet.window.Window):
     def destroy_widgets(self) -> None: # noqa D102
         for widget in self.widgets:
             widget.destroy()
-        self.widgets.clear()
+        else:
+            self.widgets.clear()
+            self.frame = pyglet.gui.Frame(self, cell_size=1)
 
     def on_close(self) -> None:
         """When the window is closed destroy all widgets."""
         self.destroy_widgets()
-        self.frame = pyglet.gui.Frame(self, cell_size=1)
         self.widgets.clear()
         super().on_close()
 
