@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pyglet
 
-from . import CELL_SIZE, GameOfLife, Grid, HEIGHT, WIDTH
-from .constants import BACKGROUND, FOREGROUND, MIDDLEGROUND
+from .grid import GameOfLife, Grid
+from .constants import BACKGROUND, CELL_SIZE, FOREGROUND, HEIGHT, MIDDLEGROUND, WIDTH
 from .utils import load_grids_from_file, pad_grid
 
 MAX_PAGE = 2

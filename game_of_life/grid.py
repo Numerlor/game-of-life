@@ -8,7 +8,8 @@ import typing
 
 import pyglet
 
-from game_of_life import Cell, FOREGROUND, SIMULATION_TICK
+from.cell import Cell
+from .constants import FOREGROUND, SIMULATION_TICK
 
 
 class Grid:

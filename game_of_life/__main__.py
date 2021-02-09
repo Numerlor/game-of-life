@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pyglet
 
-from game_of_life import GameOfLifeWindow
+from game_of_life.window import GameOfLifeWindow
 from .utils import load_grid_from_file, pad_grid
 
 pyglet.resource.path.append("../resources")
