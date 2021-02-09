@@ -267,7 +267,7 @@ class SelectionPopup(pyglet.window.Window):
 
         self.prev_button = pyglet.gui.PushButton(
             20,
-            self.height // 2,
+            50,
             pyglet.resource.image("left_arrow.png"),
             pyglet.resource.image("left_arrow.png"),
             pyglet.resource.image("left_arrow_hover.png"),
@@ -277,7 +277,7 @@ class SelectionPopup(pyglet.window.Window):
 
         self.next_button = pyglet.gui.PushButton(
             self.width - 50,
-            self.height // 2,
+            50,
             pyglet.resource.image("right_arrow.png"),
             pyglet.resource.image("right_arrow.png"),
             pyglet.resource.image("right_arrow_hover.png"),
