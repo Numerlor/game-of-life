@@ -60,16 +60,8 @@ class GameOfLifeWindow(pyglet.window.Window):
             width = WIDTH
         super().__init__(width, height, *args, **kwargs)
         self.batch = pyglet.graphics.Batch()
-        self.game = GameOfLife(
-            0,
-            0,
-            start_grid,
-            CELL_SIZE,
-            height=height,
-            width=width,
-            batch=self.batch,
-            group=BACKGROUND,
-        )
+        grid = Grid(0, 0, CELL_SIZE, start_grid, height=height, width=width, batch=self.batch, group=BACKGROUND)
+        self.game = GameOfLife(grid)
         self.context_menu = None
         self.template = None
         self.grid = None
@@ -172,7 +164,7 @@ class TemplateWidget(pyglet.gui.WidgetBase):
             y: int,
             width: int,
             height: int,
-            grid: list[list[int]],
+            template: list[list[int]],
             name: str,
             *,
             static: bool,
@@ -180,42 +172,34 @@ class TemplateWidget(pyglet.gui.WidgetBase):
             callback: typing.Callable
     ):
         super().__init__(x, y, width, height)
-        grid_width = len(grid[0]) * 5
-        grid_height = len(grid)*5
-        self.grid = grid
-        self.game: typing.Union[GameOfLife, Grid]
-        if static:
-            self.game = Grid(
+        self.template = template
+        self.static = static
+        self.callback = callback
+        self.grid_lines = []
+
+        grid_width = len(template[0]) * 5
+        grid_height = len(template)*5
+
+        self.grid = Grid(
                 x+width//2-grid_width//2,
                 y+height//2-grid_height//2,
                 5,
-                grid,
+                template,
                 batch=batch,
                 group=MIDDLEGROUND
-            )
-            self.game.create_grid(batch)
-        else:
-            self.game = GameOfLife(
-                x+width//2-grid_width//2+1,
-                y+height//2-grid_height//2+1,
-                grid,
-                5,
-                batch=batch,
-                tick=1/10,
-                group=MIDDLEGROUND
-            )
+        )
+        if not static:
+            self.game = GameOfLife(self.grid)
         self.name = name.title() if not name.isupper() else name
-        self.callback = callback
         self.label = pyglet.text.Label(self.name, x=x+50, y=y-20, width=100, batch=batch, anchor_x="center")
         self.construct_outline(x, y, width, height, batch)
 
     def on_mouse_press(self, x: int, y: int, buttons: int, modifiers: int) -> None:
         """If we received a mouse press event, call the callback. The parent will handle the destruction."""
-        self.callback(self.grid)
+        self.callback(self.template)
 
     def construct_outline(self, x: int, y: int, width: int, height: int, batch: pyglet.graphics.Batch) -> None:
         """Create square outline with `width` and `height` at (`x`, `y`)."""
-        self.lines = []
         lines = (
             ((x, y), (x+width, y)),
             ((x+width, y), (x+width, y+height,)),
@@ -223,24 +207,24 @@ class TemplateWidget(pyglet.gui.WidgetBase):
             ((x, y+height), (x, y)),
         )
         for (x1, y1), (x2, y2) in lines:
-            self.lines.append(
+            self.grid_lines.append(
                 pyglet.shapes.Line(x1, y1, x2, y2, 2, color=(0,)*3, batch=batch)
             )
 
     def destroy(self) -> None:
         """Stop running game and delete all opengl vertices."""
-        if isinstance(self.game, GameOfLife):
+        if not self.static:
             pyglet.clock.unschedule(self.game.run_generation)
             for cell in self.game.grid.cells:
                 cell.delete()
             for line in self.game.grid.grid_lines:
                 line.delete()
         else:
-            for cell in self.game.cells:
+            for cell in self.grid.cells:
                 cell.delete()
-            for line in self.game.grid_lines:
+            for line in self.grid.grid_lines:
                 line.delete()
-        for line in self.lines:
+        for line in self.grid_lines:
             line.delete()
         self.label.delete()
 

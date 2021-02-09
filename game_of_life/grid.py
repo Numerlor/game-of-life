@@ -37,9 +37,10 @@ class Grid:
         self.x = x // cell_size
         self.y = y // cell_size
         self.grid_lines = []
-        self.create(start_grid, batch, group)
+        self.batch = batch
+        self.create(start_grid, group)
 
-    def create(self, start_grid: list[list[int]], batch: pyglet.graphics.Batch, group: pyglet.graphics.Group) -> None:
+    def create(self, start_grid: list[list[int]], group: pyglet.graphics.Group) -> None:
         """
         Init cell objects for whole grid.
 
@@ -47,24 +48,24 @@ class Grid:
         """
         if start_grid is None:
             for y, x in itertools.product(range(self.row_count), range(self.col_count)):
-                cell = Cell(self.cell_size, self.x + x, self.y + y, batch, group)
+                cell = Cell(self.cell_size, self.x + x, self.y + y, self.batch, group)
                 self.cells.append(cell)
                 if random.random() < .33:
                     cell.switch()
         else:
             for y, row in enumerate(start_grid):
                 for x, state in enumerate(row):
-                    cell = Cell(self.cell_size, self.x + x, self.y + y, batch, group)
+                    cell = Cell(self.cell_size, self.x + x, self.y + y, self.batch, group)
                     self.cells.append(cell)
                     if state:
                         cell.switch()
 
-    def create_grid(self, batch) -> None:
+    def create_grid(self) -> None:
         """Create grid from lines."""
         pyglet.gl.glLineWidth(1)
         for y in range(self.row_count + 1):
             self.grid_lines.append(
-                batch.add(
+                self.batch.add(
                     2, pyglet.gl.GL_LINES, FOREGROUND,
                     (
                         "v2i/static",
@@ -78,7 +79,7 @@ class Grid:
             )
         for x in range(self.col_count + 1):
             self.grid_lines.append(
-                batch.add(
+                self.batch.add(
                     2, pyglet.gl.GL_LINES, FOREGROUND,
                     (
                         "v2i/static",
@@ -134,21 +135,9 @@ class Grid:
 class GameOfLife:
     """Manages grid of `Cell`s and simulates the game of life with them."""
 
-    def __init__(
-            self,
-            x: int,
-            y: int,
-            start_grid: list[list[int]],
-            cell_size: int,
-            *,
-            height: typing.Optional[int] = None,
-            width: typing.Optional[int] = None,
-            batch: pyglet.graphics.Batch,
-            group: pyglet.graphics.Group,
-            tick: float = SIMULATION_TICK,
-    ):
-        self.grid = Grid(x, y, cell_size, start_grid, height=height, width=width, batch=batch, group=group)
-        self.grid.create_grid(batch)
+    def __init__(self, grid: Grid, *, tick: float = SIMULATION_TICK):
+        self.grid = grid
+        self.grid.create_grid()
         self.changed: typing.Union[set[Cell]] = set(self.grid.cells)
         self.running = True
         pyglet.clock.schedule_interval(self.run_generation, tick)
