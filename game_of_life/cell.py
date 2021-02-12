@@ -16,13 +16,13 @@ class Cell:
     __slots__ = ("rect", "is_alive")
 
     def __init__(self, cell_size: int, x: int, y: int, batch: pyglet.graphics.Batch, group: pyglet.graphics.Group):
-        self.rect = pyglet.shapes.Rectangle(x*cell_size, y*cell_size, cell_size, cell_size, (0,)*3, batch, group=group)
+        self.rect = pyglet.shapes.Rectangle(x*cell_size, y*cell_size, cell_size, cell_size, (255,)*3, batch, group=group)
         self.is_alive = False
 
     def switch(self) -> None:
         """Switch current color and is_alive to opposite value."""
         self.is_alive = not self.is_alive
-        self.rect.color = (255,)*3 if self.is_alive else (0,)*3
+        self.rect.color = (0,)*3 if self.is_alive else (255,)*3
 
     @property
     def delete(self) -> types.MethodType: # noqa  D102
