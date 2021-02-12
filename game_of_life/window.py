@@ -331,9 +331,8 @@ class SelectionPopup(pyglet.window.Window):
     def destroy_widgets(self) -> None: # noqa D102
         for widget in self.widgets:
             widget.destroy()
-        else:
-            self.widgets.clear()
-            self.frame = pyglet.gui.Frame(self, cell_size=1)
+        self.widgets.clear()
+        self.frame = pyglet.gui.Frame(self, cell_size=1)
 
     def on_close(self) -> None:
         """When the window is closed destroy all widgets."""
