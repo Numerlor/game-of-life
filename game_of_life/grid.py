@@ -11,6 +11,33 @@ import pyglet
 from .cell import Cell
 from .constants import FOREGROUND, SIMULATION_TICK
 
+try:
+    from .cython_modules.neighbor_search import get_neighbor_indices as get_neighbor_indices_optimized
+
+    def get_neighbor_indices(self, x: int, y: int) -> typing.Tuple[int, ...]:
+        """Get indices of all cells around x,y."""
+        return get_neighbor_indices_optimized(x, y, self.x, self.y, self.col_count, self.row_count)
+
+except ImportError:
+    def get_neighbor_indices(self, x: int, y: int) -> typing.Tuple[int, ...]:
+        """Get indices of all cells around x,y."""
+        x = x - self.x
+        y = y - self.y
+        return (
+            ((y - 1) % self.row_count) * self.col_count + (x - 1) % self.col_count,
+            ((y - 1) % self.row_count) * self.col_count + x,
+            ((y - 1) % self.row_count) * self.col_count + (x + 1) % self.col_count,
+
+            y * self.col_count + (x - 1) % self.col_count,
+            y * self.col_count + x,
+            y * self.col_count + (x + 1) % self.col_count,
+
+            ((y + 1) % self.row_count) * self.col_count + (x - 1) % self.col_count,
+            ((y + 1) % self.row_count) * self.col_count + x,
+            ((y + 1) % self.row_count) * self.col_count + (x + 1) % self.col_count,
+
+        )
+
 
 class Grid:
     """Grid of `Cell`s."""
@@ -113,24 +140,7 @@ class Grid:
         y = y - self.y
         return self.cells[y * self.col_count + x]
 
-    def get_neighbor_indices(self, x: int, y: int) -> typing.Tuple[int, ...]:
-        """Get indices of all cells around x,y."""
-        x = x - self.x
-        y = y - self.y
-        return (
-            ((y - 1) % self.row_count) * self.col_count + (x - 1) % self.col_count,
-            ((y - 1) % self.row_count) * self.col_count + x,
-            ((y - 1) % self.row_count) * self.col_count + (x + 1) % self.col_count,
-
-            y * self.col_count + (x - 1) % self.col_count,
-            y * self.col_count + x,
-            y * self.col_count + (x + 1) % self.col_count,
-
-            ((y + 1) % self.row_count) * self.col_count + (x - 1) % self.col_count,
-            ((y + 1) % self.row_count) * self.col_count + x,
-            ((y + 1) % self.row_count) * self.col_count + (x + 1) % self.col_count,
-
-        )
+    get_neighbor_indices = get_neighbor_indices
 
 
 class GameOfLife:
