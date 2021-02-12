@@ -75,6 +75,8 @@ class GameOfLifeWindow(pyglet.window.Window):
         """Run a single generation when a key is pressed."""
         if symbol == pyglet.window.key.SPACE:
             self.game.run_generation(0)
+        elif symbol == pyglet.window.key.P:
+            self.game.start_stop()
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
         """
