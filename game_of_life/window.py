@@ -192,7 +192,7 @@ class TemplateWidget(pyglet.gui.WidgetBase):
         )
         self.grid.create_grid()
         if not static:
-            self.game = GameOfLife(self.grid)
+            self.game = GameOfLife(self.grid, tick=1/10)
         self.name = name.title() if not name.isupper() else name
         self.label = pyglet.text.Label(self.name, x=x+width//2, y=y-20, width=width, batch=batch, anchor_x="center")
         self.construct_outline(x, y, width, height, batch)
