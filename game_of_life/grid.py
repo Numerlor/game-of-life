@@ -8,7 +8,7 @@ import typing
 
 import pyglet
 
-from.cell import Cell
+from .cell import Cell
 from .constants import FOREGROUND, SIMULATION_TICK
 
 
